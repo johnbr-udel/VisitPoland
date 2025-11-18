@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+
+# Data & results (examples)
+TestCube/
+results/
+*.npy
+*.tiff
+*.pt
+*.bin
+
+# Logs
+*.log
