@@ -210,7 +210,10 @@ def plot_results(input_image: torch.Tensor,
     axs[2, 3].set_title('Profile Error')
     fig.colorbar(im2, ax=axs[2, 3])
 
-    plt.show()
+    #plt.show()
+    plt.savefig(f"results/reconstruction_{cube_tag}.png", dpi=200)
+    plt.close()
+    
 
     # Compute metrics (SSIM and PSNR) for CHM and DTM.
     from skimage.metrics import structural_similarity as ssim, peak_signal_noise_ratio as psnr
