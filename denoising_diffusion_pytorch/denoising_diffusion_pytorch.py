@@ -936,6 +936,7 @@ class Trainer(object):
 
         torch.save(data, str(self.results_folder / f'model{self.resolution}.pt'))
 
+    """"
     def load(self, milestone):
         accelerator = self.accelerator
         device = accelerator.device
@@ -955,6 +956,45 @@ class Trainer(object):
 
         if exists(self.accelerator.scaler) and exists(data['scaler']):
             self.accelerator.scaler.load_state_dict(data['scaler'])
+            
+     """
+     
+    def load(self, milestone):
+        accelerator = self.accelerator
+        device = accelerator.device
+
+        # 1) Load checkpoint on CPU to avoid GPU OOM
+        ckpt_path = self.results_folder / f'model{self.resolution}.pt'
+        print(f"Loading checkpoint from {ckpt_path} on CPU...")
+        data = torch.load(str(ckpt_path), map_location='cpu')
+
+        # 2) Load model weights from CPU checkpoint
+        model = self.accelerator.unwrap_model(self.model)
+        model.load_state_dict(data['model'])
+
+        # 3) Move models to GPU
+        self.model.to(device)
+        self.ema.ema_model.to(device)
+
+        # Step counter (optional, for logging)
+        self.step = data.get('step', 0)
+
+        # Load EMA weights (still from CPU checkpoint)
+        if self.accelerator.is_main_process and "ema" in data:
+            self.ema.load_state_dict(data["ema"])
+
+        if 'version' in data:
+            print(f"loading from version {data['version']}")
+
+    # ❌ Skip optimizer & scaler for inference to save a lot of memory
+    # if 'opt' in data:
+    #     self.opt.load_state_dict(data['opt'])
+    # if exists(self.accelerator.scaler) and exists(data.get('scaler', None)):
+    #     self.accelerator.scaler.load_state_dict(data['scaler'])
+
+     
+     
+     
 
     def train(self):
         accelerator = self.accelerator
